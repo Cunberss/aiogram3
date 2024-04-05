@@ -23,7 +23,6 @@ def async_session_generator():
 async def get_session():
     try:
         async_session = async_session_generator()
-
         async with async_session() as session:
             yield session
     except:
