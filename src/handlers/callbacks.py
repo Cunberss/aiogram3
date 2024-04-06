@@ -13,7 +13,6 @@ router = Router(name='callbacks-router')
 
 @router.callback_query(F.data.startswith('category'))
 async def get_subcatalog_handler(callback: CallbackQuery):
-    print(callback.data)
     category_id = int(callback.data.split('_')[1])
     async with get_session() as session:
         page = 1
@@ -32,7 +31,6 @@ async def get_subcatalog_handler(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith('subcategory'))
 async def get_products_handler(callback: CallbackQuery):
-    print(callback.data)
     subcategory_id = int(callback.data.split('_')[1])
     async with get_session() as session:
         page = 1
@@ -61,7 +59,6 @@ async def check_subscribe_handler(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith('page'))
 async def pagination_handler(callback: CallbackQuery):
-    print(callback.data)
     async with get_session() as session:
         next_page, prefix = int(callback.data.split('_')[2]), callback.data.split('_')[1]
         category_id = int(prefix[-1])
