@@ -6,7 +6,7 @@ from src.db.models import User
 from src.db.base import get_session
 from src.keyboards import main_keyboard, channel_keyboard
 from src.bot import bot
-from src.config import CHANNEL_NAME
+from src.config import CHANNEL_NAME, GROUP_NAME
 
 router = Router(name='commands-router')
 
@@ -20,8 +20,9 @@ async def cmd_start(message: Message):
             await session.execute(stmt)
             await session.commit()
     user_channel_status = await bot.get_chat_member(chat_id=f'@{CHANNEL_NAME}', user_id=message.from_user.id)
-    if user_channel_status.status != 'left':
+    user_group_status = await bot.get_chat_member(chat_id=f'@{GROUP_NAME}', user_id=message.from_user.id)
+    if user_channel_status.status != 'left' and user_group_status.status != 'left':
         await message.answer(f'Привет, {message.from_user.username}!', reply_markup=main_keyboard())
     else:
-        await message.answer('Для продолжения, подпишись на канал', reply_markup=channel_keyboard())
+        await message.answer('Для продолжения, подпишись на канал и вступи в группу', reply_markup=channel_keyboard())
 
