@@ -1,5 +1,6 @@
 from aiogram.types import InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder, KeyboardBuilder
+from src.config import CHANNEL_NAME
 
 
 def main_keyboard() -> ReplyKeyboardMarkup:
@@ -18,3 +19,10 @@ def generate_category_keyboard(dict_category: dict, subcategory=False) -> Inline
     for item in dict_category.items():
         builder.add(InlineKeyboardButton(text=item[1], callback_data=f'{prefix}_{item[0]}'))
     return builder.adjust(1).as_markup()
+
+
+def channel_keyboard() -> InlineKeyboardMarkup:
+    button_url = InlineKeyboardButton(text='Канал', url=f'https://t.me/{CHANNEL_NAME}')
+    button_check = InlineKeyboardButton(text='Проверить', callback_data='check_subscribe')
+    return InlineKeyboardBuilder().add(button_url, button_check).adjust(1).as_markup()
+
