@@ -13,12 +13,15 @@ def main_keyboard() -> ReplyKeyboardMarkup:
     return keyboard
 
 
-def generate_category_keyboard(dict_category: dict, subcategory=False) -> InlineKeyboardMarkup:
+def generate_category_keyboard(dict_category: dict, subcategory=False, current_page=1, category_id=0) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     prefix = 'subcategory' if subcategory else 'category'
     for item in dict_category.items():
-        builder.add(InlineKeyboardButton(text=item[1], callback_data=f'{prefix}_{item[0]}'))
-    return builder.adjust(1).as_markup()
+        builder.row(InlineKeyboardButton(text=item[1], callback_data=f'{prefix}_{item[0]}'), width=1)
+    next_kb = InlineKeyboardButton(text='>>', callback_data=f'page_{prefix}{category_id}_{current_page + 1}')
+    down_kb = InlineKeyboardButton(text='<<', callback_data=f'page_{prefix}{category_id}_{current_page - 1}')
+    builder.row(down_kb, next_kb, width=2) if current_page > 1 else builder.row(next_kb, width=1)
+    return builder.as_markup()
 
 
 def channel_keyboard() -> InlineKeyboardMarkup:

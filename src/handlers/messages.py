@@ -4,6 +4,7 @@ from sqlalchemy import select, insert
 from src.db.models import User, Cart, Category, SubCategory
 from src.db.base import get_session
 from src.keyboards import main_keyboard, generate_category_keyboard
+from src.config import PER_PAGE
 
 router = Router(name='messages-router')
 
@@ -11,7 +12,7 @@ router = Router(name='messages-router')
 @router.message(F.text == 'Корзина')
 async def user_cart_handler(message: Message):
     async with get_session() as session:
-        query = select(Cart).where(Cart.user_id == message.from_user.id)
+        query = select(Cart).order_by(Cart.id).where(Cart.user_id == message.from_user.id)
         result = await session.execute(query)
         if result.all():
             pass
@@ -22,11 +23,14 @@ async def user_cart_handler(message: Message):
 @router.message(F.text == 'Каталог')
 async def catalog_handler(message: Message):
     async with get_session() as session:
-        query = select(Category)
+        page = 1
+        start = (page - 1) * PER_PAGE
+        end = start + PER_PAGE
+        query = select(Category).slice(start, end)
         result = await session.execute(query)
         answer = result.all()
         if answer:
             categories_dict = {el[0].id: el[0].name for el in answer}
-            await message.answer('Выбери категорию', reply_markup=generate_category_keyboard(categories_dict))
+            await message.answer('Выбери категорию', reply_markup=generate_category_keyboard(categories_dict, current_page=page))
         else:
             await message.answer(f'Каталог пуст')
