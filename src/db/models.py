@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, BigInteger, Numeric, ForeignKey
+from sqlalchemy import Column, Integer, String, BigInteger, Numeric, ForeignKey, Text, ARRAY
 from src.db.base import Base
 
 
@@ -50,3 +50,13 @@ class CartItem(Base):
     cart_id = Column(Integer, ForeignKey('carts.id'))
     product_id = Column(Integer, ForeignKey('products.id'))
     quantity = Column(Integer, nullable=False)
+
+
+class Question(Base):
+    __tablename__ = 'question'
+
+    id = Column(Integer, primary_key=True)
+    question_text = Column(String(255), nullable=False)
+    answer = Column(Text, nullable=False)
+    tags = Column(ARRAY(String), nullable=True)
+
