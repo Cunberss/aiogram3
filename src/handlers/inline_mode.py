@@ -1,18 +1,18 @@
 from aiogram import Router
 from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessageContent
-from sqlalchemy import select
+from sqlalchemy import select, or_
 
 from src.db.base import get_session
 from src.db.models import Question
 
-router = Router(name='callbacks-router')
+router = Router(name='inline-mode-router')
 
 
 @router.inline_query()
 async def inline_mode_handler(inline_query: InlineQuery):
-    tag_search = inline_query.query.split(' ')[-1]
+    tag_search = inline_query.query.split(' ')[-1].lower()
     async with get_session() as session:
-        query = select(Question).where(Question.question_text.like(f'%{tag_search}%'))
+        query = select(Question).where(Question.question_text.ilike(f'%{tag_search}%'))
         result = await session.execute(query)
         answer = result.all()
         if answer:
@@ -20,16 +20,14 @@ async def inline_mode_handler(inline_query: InlineQuery):
             list_answer = [InlineQueryResultArticle(
                 id=str(el[0]),
                 title=el[1],
-                description=el[2],
+                description='Получить ответ',
                 input_message_content=InputTextMessageContent(
-                    message_text='FAQ',
+                    message_text=el[2],
                 ),
                 parse_mode='HTML'
 
             ) for el in faq_list]
-            print(list_answer)
-
             await inline_query.answer(list_answer, is_personal=True)
         else:
-            print('Ничего нет')
+            await inline_query.answer([])
 
