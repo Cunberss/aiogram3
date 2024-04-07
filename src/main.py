@@ -36,6 +36,8 @@ async def main():
     logging.getLogger('aiogram').addHandler(InterceptHandler())
     logging.getLogger('asyncio').setLevel(logging.DEBUG)
     logging.getLogger('asyncio').addHandler(InterceptHandler())
+    logging.getLogger('sqlalchemy').setLevel(logging.DEBUG)
+    logging.getLogger('sqlalchemy').addHandler(InterceptHandler())
     await bot.delete_webhook(drop_pending_updates=True)
     dp.include_router(commands_router)
     dp.include_router(messages_router)

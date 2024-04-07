@@ -4,7 +4,7 @@ from sqlalchemy import select, insert
 from src.db.models import User, Cart, Category, SubCategory
 from src.db.base import get_session
 from src.keyboards import main_keyboard, generate_category_keyboard
-from src.config import PER_PAGE
+from src.config import PER_PAGE, BOT_USERNAME
 
 router = Router(name='messages-router')
 
@@ -34,3 +34,8 @@ async def catalog_handler(message: Message):
             await message.answer('Выбери категорию', reply_markup=generate_category_keyboard(categories_dict, current_page=page))
         else:
             await message.answer(f'Каталог пуст')
+
+
+@router.message(F.text == 'F.A.Q')
+async def faq_handler(message: Message):
+    await message.answer(f'Начни вводить @{BOT_USERNAME} для вызова F.A.Q...')
