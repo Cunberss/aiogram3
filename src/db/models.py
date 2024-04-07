@@ -58,5 +58,4 @@ class Question(Base):
     id = Column(Integer, primary_key=True)
     question_text = Column(String(255), nullable=False)
     answer = Column(Text, nullable=False)
-    tags = Column(ARRAY(String), nullable=True)
 

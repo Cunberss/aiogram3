@@ -3,6 +3,7 @@ from src.bot import bot, dp
 from handlers.commands import router as commands_router
 from handlers.messages import router as messages_router
 from handlers.callbacks import router as callbacks_router
+from handlers.inline_mode import router as inline_mode_router
 import logging
 from loguru import logger
 
@@ -39,6 +40,7 @@ async def main():
     dp.include_router(commands_router)
     dp.include_router(messages_router)
     dp.include_router(callbacks_router)
+    dp.include_router(inline_mode_router)
     await dp.start_polling(bot)
 
 
