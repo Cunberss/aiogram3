@@ -102,24 +102,31 @@ async def get_address(message: Message, state: FSMContext):
         async with get_session() as session:
             query = select(Cart).where(Cart.user_id == message.from_user.id)
             result = await session.execute(query)
+
             cart_id = int(result.all()[0][0].id)
+
             query = select(CartItem.product_id, CartItem.quantity, (Product.price * CartItem.quantity).label('total_price'), Product.name).join(CartItem, Product.id == CartItem.product_id).filter(CartItem.cart_id == cart_id).order_by(desc(CartItem.id))
             result = await session.execute(query)
             answer = result.all()
+
             data_products = [f'product_id:{el[0]},quantity:{el[1]}' for el in answer]
             products = '\n'.join(data_products)
             price = sum([el[2] for el in answer])
+
             query = insert(Order).values(user_id=message.from_user.id, address=address, price=price, products=products)
             await session.execute(query)
             await session.commit()
+
             query = select(Order.id).where(and_(Order.user_id == message.from_user.id, Order.status == False)).order_by(desc(Order.id))
             result = await session.execute(query)
             order_id = result.all()[0][0]
+
             query = delete(CartItem).where(CartItem.cart_id == cart_id)
             await session.execute(query)
             query = delete(Cart).where(Cart.user_id == message.from_user.id)
             await session.execute(query)
             await session.commit()
+
             await bot.send_invoice(chat_id=message.from_user.id,
                                    title='Тайтл заказа',
                                    description='Описание заказа',

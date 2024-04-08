@@ -102,6 +102,7 @@ async def action_products_handler(callback: CallbackQuery, state: FSMContext):
             await callback.message.delete()
         else:
             await callback.answer('Это последний товар', show_alert=True)
+
     elif response == 'back':
         data = await state.get_data()
         list_products = data['products']
@@ -118,6 +119,7 @@ async def action_products_handler(callback: CallbackQuery, state: FSMContext):
                                  reply_markup=product_keyboard())
             await callback.answer()
             await callback.message.delete()
+
     elif response == 'incart':
         async with get_session() as session:
             query = select(Cart).where(Cart.user_id == callback.from_user.id)
@@ -140,10 +142,12 @@ async def action_products_handler(callback: CallbackQuery, state: FSMContext):
                 current_caption += '\n\nВыберите количество 👇'
         await callback.message.edit_caption(caption=current_caption, reply_markup=choose_quantity_keyboard())
         await callback.answer()
+
     elif response == 'return':
         caption = callback.message.caption.replace('\n\nВыберите количество 👇', '')
         await callback.message.edit_caption(caption=caption, reply_markup=product_keyboard())
         await callback.answer()
+
     elif response == 'incart+' or response == 'incart-':
         current_quantity = int(callback.data.split('_')[-1])
         quantity = current_quantity + 1 if response[-1] == '+' else current_quantity - 1
@@ -152,6 +156,7 @@ async def action_products_handler(callback: CallbackQuery, state: FSMContext):
         except TelegramBadRequest:
             pass
         await callback.answer()
+
     elif response == 'saveincart':
         quantity = int(callback.data.split('_')[-1])
         data = await state.get_data()
@@ -180,6 +185,7 @@ async def action_products_handler(callback: CallbackQuery, state: FSMContext):
         caption = callback.message.caption.replace('\n\nВыберите количество 👇', '')
         await callback.message.edit_caption(caption=caption, reply_markup=product_keyboard())
         await callback.answer(text='Товар добавлен в корзину', show_alert=True)
+
     else:
         await callback.answer()
 
@@ -223,6 +229,7 @@ async def actions_cartitems(callback: CallbackQuery, state: FSMContext):
                     await callback.answer('Что-то пошло не так', show_alert=True)
             else:
                 await callback.answer('Что-то пошло не так', show_alert=True)
+
     elif response == 'alldel':
         cart_id = int(callback.data.split('_')[-1])
         async with get_session() as session:
@@ -231,10 +238,12 @@ async def actions_cartitems(callback: CallbackQuery, state: FSMContext):
             await session.commit()
             await callback.answer('Ваша корзина полностью очищена', show_alert=True)
             await callback.message.delete()
+
     elif response == 'back':
         text = callback.message.text.replace('\n\nКакой товар убрать из корзины? 👇', '')
         await callback.message.edit_text(text=text, reply_markup=cart_keyboard())
         await callback.answer()
+
     elif response == 'delete':
         product_id = int(callback.data.split('_')[-2])
         cart_id = int(callback.data.split('_')[-1])
@@ -265,13 +274,16 @@ async def check_order_handler(callback: CallbackQuery):
         query = select(Order.products).where(Order.id == order_id)
         result = await session.execute(query)
         answer = result.all()[0][0]
+
         list_products = [el.split(',') for el in answer.split('\n')]
         list_products = [[el_1.split(':')[1], el_2.split(':')[1]] for [el_1, el_2] in list_products]
         products_ids = [int(el[0]) for el in list_products]
         quantity_list = [int(el[1]) for el in list_products]
+
         query = select(Product.name, Product.price).filter(Product.id.in_(products_ids))
         result = await session.execute(query)
         answer = [el for el in result.all()]
+
         text = f'Информация по заказу №{order_id} 👇\n\n'
         for el_1, el_2 in zip(answer, quantity_list):
             text += f'{el_1[0]}, кол-во: {el_2}, стоимость: {el_1[1]}\n'
