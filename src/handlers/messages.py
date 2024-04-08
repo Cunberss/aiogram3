@@ -86,7 +86,6 @@ async def get_contact(message: Message, state: FSMContext):
         await session.execute(query)
         await session.commit()
     await state.set_state(OrderCreate.address)
-    await state.update_data(phone=phone)
     await bot.send_message(message.from_user.id, 'Введите адрес доставки 👇', reply_markup=main_keyboard())
 
 
@@ -96,9 +95,6 @@ async def get_address(message: Message, state: FSMContext):
     if len(address) < 8 or len(address) > 120:
         await bot.send_message(message.from_user.id, 'Введите корректный адрес доставки 👇')
     else:
-        data = await state.get_data()
-        phone = data['phone']
-        await state.clear()
         async with get_session() as session:
             query = select(Cart).where(Cart.user_id == message.from_user.id)
             result = await session.execute(query)
