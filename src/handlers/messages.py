@@ -1,3 +1,7 @@
+import os.path
+from datetime import datetime
+
+import pandas as pd
 from aiogram import Router, F
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
@@ -142,7 +146,33 @@ async def success_payment(message: Message):
     await bot.send_message(message.from_user.id, 'Оплата прошла успешно! С вами свяжется менеджер в ближайшее время '
                                                  'для уточнения деталей доставки')
     await bot.send_message(MANAGER_ID, '‼️Пришел новый заказ ‼️')
-    '''Записать заказ в таблицу эксель'''
+    folder = 'orders/'
+    date = datetime.now().strftime('%Y-%m-%d')
+    filename = f'{folder}order_{date}.xlsx'
+    async with get_session() as session:
+        query = select(User.user_id, User.username, User.phone, Order.id, Order.price, Order.products).join(Order, User.user_id == Order.user_id).filter(Order.id == order_id)
+    result = await session.execute(query)
+    answer = result.all()[0]
+    new_data = [{'user_id': answer[0], 'username': answer[1], 'phone': answer[2], 'order_id': answer[3], 'price': answer[4]}]
+    list_products = [el.split(',') for el in answer[5].split('\n')]
+    list_products = [[el_1.split(':')[1], el_2.split(':')[1]] for [el_1, el_2] in list_products]
+    products_ids = [int(el[0]) for el in list_products]
+    quantity_list = [int(el[1]) for el in list_products]
+    query = select(Product.name, Product.price).filter(Product.id.in_(products_ids))
+    result = await session.execute(query)
+    answer = [el for el in result.all()]
+    text = f'Информация по заказу №{order_id}:\n\n'
+    for el_1, el_2 in zip(answer, quantity_list):
+        text += f'{el_1[0]}, кол-во: {el_2}, стоимость: {el_1[1]}\n'
+    new_data[0]['data_order'] = text
+    new_df = pd.DataFrame(new_data)
+    if os.path.isfile(filename):
+        df = pd.read_excel(filename)
+        df = pd.concat([df, new_df], ignore_index=True)
+    else:
+        df = new_df
+    df.to_excel(filename, index=False)
+
 
 
 

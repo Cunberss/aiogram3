@@ -1,12 +1,14 @@
+from datetime import datetime
+
 from aiogram import Router
-from aiogram.filters import CommandStart
-from aiogram.types import Message
+from aiogram.filters import CommandStart, Command
+from aiogram.types import Message, FSInputFile
 from sqlalchemy import select, insert
 from src.db.models import User
 from src.db.base import get_session
 from src.keyboards import main_keyboard, channel_keyboard
 from src.bot import bot
-from src.config import CHANNEL_NAME, GROUP_NAME
+from src.config import CHANNEL_NAME, GROUP_NAME, MANAGER_ID
 
 router = Router(name='commands-router')
 
@@ -25,4 +27,18 @@ async def cmd_start(message: Message):
         await message.answer(f'Привет, {message.from_user.username}!', reply_markup=main_keyboard())
     else:
         await message.answer('Для продолжения, подпишись на канал и вступи в группу', reply_markup=channel_keyboard())
+
+
+@router.message(Command('orders'))
+async def get_orders_manager_handler(message: Message):
+    if int(message.from_user.id) == int(MANAGER_ID):
+        folder = 'orders/'
+        date = datetime.now().strftime('%Y-%m-%d')
+        filename = f'{folder}order_{date}.xlsx'
+        try:
+            file = FSInputFile(filename)
+            await bot.send_document(message.from_user.id, document=file, caption='Заказы за сегодня')
+        except Exception:
+            await bot.send_message(message.from_user.id, 'Заказов сегодня не было')
+
 
