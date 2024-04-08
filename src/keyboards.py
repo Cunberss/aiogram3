@@ -22,6 +22,8 @@ def generate_category_keyboard(dict_category: dict, subcategory=False, current_p
     next_kb = InlineKeyboardButton(text='>>', callback_data=f'page_{prefix}{category_id}_{current_page + 1}')
     down_kb = InlineKeyboardButton(text='<<', callback_data=f'page_{prefix}{category_id}_{current_page - 1}')
     builder.row(down_kb, next_kb, width=2) if current_page > 1 else builder.row(next_kb, width=1)
+    if prefix == 'subcategory':
+        builder.row(InlineKeyboardButton(text='К категориям', callback_data='return_to_category'))
     return builder.as_markup()
 
 
@@ -36,7 +38,8 @@ def product_keyboard() -> InlineKeyboardMarkup:
     button_back = InlineKeyboardButton(text='⬅️', callback_data='product_back')
     button_next = InlineKeyboardButton(text='➡️', callback_data='product_next')
     button_cart = InlineKeyboardButton(text='В корзину', callback_data='product_incart')
-    return InlineKeyboardBuilder().add(button_back,button_next, button_cart).adjust(2).as_markup()
+    button_back_category = InlineKeyboardButton(text='К категориям', callback_data='return_to_category')
+    return InlineKeyboardBuilder().add(button_back,button_next, button_back_category, button_cart).adjust(2).as_markup()
 
 
 def choose_quantity_keyboard(quantity=1) -> InlineKeyboardMarkup:

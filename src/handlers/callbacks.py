@@ -261,6 +261,30 @@ async def delete_message_handler(callback: CallbackQuery):
     await callback.message.delete()
 
 
+@router.callback_query(F.data == 'return_to_category')
+async def return_to_category_handler(callback: CallbackQuery, state: FSMContext):
+    await state.clear()
+    async with get_session() as session:
+        page = 1
+        start = (page - 1) * PER_PAGE
+        end = start + PER_PAGE
+        query = select(Category).slice(start, end)
+        result = await session.execute(query)
+        answer = result.all()
+        if answer:
+            categories_dict = {el[0].id: el[0].name for el in answer}
+            try:
+                await callback.message.edit_text(text='Выбери категорию',
+                                 reply_markup=generate_category_keyboard(categories_dict, current_page=page))
+                await callback.answer()
+            except Exception:
+                await bot.send_message(callback.from_user.id, text='Выбери категорию',
+                                 reply_markup=generate_category_keyboard(categories_dict, current_page=page))
+                await callback.answer()
+                await callback.message.delete()
+        else:
+            await callback.answer('Что-то пошло не так', show_alert=True)
+
 
 
 

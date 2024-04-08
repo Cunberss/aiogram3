@@ -1,4 +1,4 @@
-from src.db.models import Product, CartItem
+from src.db.models import Product
 
 
 def generation_message_product(product: Product) -> str:
