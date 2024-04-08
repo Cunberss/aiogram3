@@ -1,0 +1,23 @@
+version: '3.8'
+services:
+  bot:
+    build:
+      context: .
+    volumes:
+      - .:/aiogram-bot
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/postgres
+    command: ["/bin/bash", "-c", "alembic upgrade head && cd src && python3 main.py"]
+
+
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
