@@ -4,3 +4,7 @@ src/logs/*
 src/orders/*
 data
 .idea
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
