@@ -3,7 +3,7 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import  CallbackQuery, FSInputFile
-from sqlalchemy import select, insert, desc, delete, and_
+from sqlalchemy import select, insert, desc, delete, and_, update
 
 from src.bot import bot
 from src.config import CHANNEL_NAME, GROUP_NAME, PER_PAGE
@@ -119,8 +119,25 @@ async def action_products_handler(callback: CallbackQuery, state: FSMContext):
             await callback.answer()
             await callback.message.delete()
     elif response == 'incart':
-        current_caption = callback.message.caption
-        current_caption += '\n\nВыберите количество 👇'
+        async with get_session() as session:
+            query = select(Cart).where(Cart.user_id == callback.from_user.id)
+            result = await session.execute(query)
+            answer = result.all()
+            if not answer:
+                query = insert(Cart).values(user_id=callback.from_user.id)
+            await session.execute(query)
+            await session.commit()
+            query = select(Cart).where(Cart.user_id == callback.from_user.id)
+            result = await session.execute(query)
+            cart_id = int(result.all()[0][0].id)
+            query = select(CartItem).where(CartItem.cart_id == cart_id)
+            result = await session.execute(query)
+            answer = result.all()
+            if len(answer) > 9:
+                await callback.answer('У вас уже полная корзина. Оформите заказ или удалите лишние товары', show_alert=True)
+            else:
+                current_caption = callback.message.caption
+                current_caption += '\n\nВыберите количество 👇'
         await callback.message.edit_caption(caption=current_caption, reply_markup=choose_quantity_keyboard())
         await callback.answer()
     elif response == 'return':
@@ -150,7 +167,14 @@ async def action_products_handler(callback: CallbackQuery, state: FSMContext):
             query = select(Cart).where(Cart.user_id == callback.from_user.id)
             result = await session.execute(query)
             cart_id = result.all()[0][0].id
-            query = insert(CartItem).values(cart_id=cart_id, product_id=product_id, quantity=quantity)
+
+            query = select(CartItem).where(and_(CartItem.cart_id == cart_id, CartItem.product_id == product_id))
+            result = await session.execute(query)
+            answer = result.all()
+            if not answer:
+                query = insert(CartItem).values(cart_id=cart_id, product_id=product_id, quantity=quantity)
+            else:
+                query = update(CartItem).where(and_(CartItem.cart_id == cart_id, CartItem.product_id == product_id)).values({CartItem.quantity: CartItem.quantity + quantity})
             await session.execute(query)
             await session.commit()
         caption = callback.message.caption.replace('\n\nВыберите количество 👇', '')
