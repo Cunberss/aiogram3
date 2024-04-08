@@ -1,6 +1,7 @@
 from aiogram import Router, F
+from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, Contact
+from aiogram.types import Message, PreCheckoutQuery
 from sqlalchemy import select, insert, desc, update, and_, delete
 
 from src.bot import bot
@@ -109,6 +110,28 @@ async def get_address(message: Message, state: FSMContext):
                                    currency='RUB',
                                    prices=[{'label': el[3], 'amount': int(el[2]) * 100} for el in answer],
                                    reply_markup=pay_keyboard())
+        await state.clear()
+
+
+@router.pre_checkout_query()
+async def proccess_pre_checkout_query(pre_checkout_query: PreCheckoutQuery):
+    await bot.answer_pre_checkout_query(pre_checkout_query.id, ok=True)
+
+
+@router.message(F.successful_payment)
+async def success_payment(message: Message):
+    order_id = int(message.successful_payment.invoice_payload.split(':')[1])
+    async with get_session() as session:
+        query = update(Order).where(Order.id == order_id).values(status=True)
+        await session.execute(query)
+        await session.commit()
+    await bot.send_message(message.from_user.id, 'Оплата прошла успешно! С вами свяжется менеджер в ближайшее время '
+                                                 'для уточнения деталей доставки')
+    '''Записать заказ в таблицу эксель'''
+
+
+
+
 
 
 
