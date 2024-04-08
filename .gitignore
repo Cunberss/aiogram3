@@ -1,7 +1,9 @@
 venv
 .env
 src/logs/*
+!src/logs/.gitkeep
 src/orders/*
+!src/orders/.gitkeep
 data
 .idea
 __pycache__/
