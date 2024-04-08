@@ -30,3 +30,21 @@ def channel_keyboard() -> InlineKeyboardMarkup:
     button_check = InlineKeyboardButton(text='Проверить', callback_data='check_subscribe')
     return InlineKeyboardBuilder().add(button_url_channel, button_url_group, button_check).adjust(1).as_markup()
 
+
+def product_keyboard():
+    button_back = InlineKeyboardButton(text='⬅️', callback_data='product_back')
+    button_next = InlineKeyboardButton(text='➡️', callback_data='product_next')
+    button_cart = InlineKeyboardButton(text='В корзину', callback_data='product_incart')
+    return InlineKeyboardBuilder().add(button_back,button_next, button_cart).adjust(2).as_markup()
+
+
+def choose_quantity_keyboard(quantity=1):
+    quantity = 1 if quantity < 1 else quantity
+    button_left = InlineKeyboardButton(text='-', callback_data=f'product_incart-_{quantity}')
+    button_right = InlineKeyboardButton(text='+', callback_data=f'product_incart+_{quantity}')
+    button_quantity = InlineKeyboardButton(text=str(quantity), callback_data='product_some')
+    button_back = InlineKeyboardButton(text='Назад ◀️', callback_data='product_return')
+    button_success = InlineKeyboardButton(text='Подтвердить ✅', callback_data=f'product_saveincart_{quantity}')
+    return InlineKeyboardBuilder().add(button_left, button_quantity, button_right, button_back, button_success).adjust(3).as_markup()
+
+

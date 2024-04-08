@@ -1,4 +1,5 @@
 from aiogram import Router, F
+from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from sqlalchemy import select, insert
 from src.db.models import User, Cart, Category, SubCategory
@@ -10,7 +11,8 @@ router = Router(name='messages-router')
 
 
 @router.message(F.text == 'Корзина')
-async def user_cart_handler(message: Message):
+async def user_cart_handler(message: Message, state: FSMContext):
+    await state.clear()
     async with get_session() as session:
         query = select(Cart).order_by(Cart.id).where(Cart.user_id == message.from_user.id)
         result = await session.execute(query)
@@ -21,7 +23,8 @@ async def user_cart_handler(message: Message):
 
 
 @router.message(F.text == 'Каталог')
-async def catalog_handler(message: Message):
+async def catalog_handler(message: Message, state: FSMContext):
+    await state.clear()
     async with get_session() as session:
         page = 1
         start = (page - 1) * PER_PAGE
@@ -37,5 +40,6 @@ async def catalog_handler(message: Message):
 
 
 @router.message(F.text == 'F.A.Q')
-async def faq_handler(message: Message):
+async def faq_handler(message: Message, state: FSMContext):
+    await state.clear()
     await message.answer(f'Начни вводить @{BOT_USERNAME} для вызова F.A.Q...')
