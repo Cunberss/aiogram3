@@ -3,3 +3,5 @@ venv
 src/logs/*
 src/orders/*
 data
+.idea
+.env
