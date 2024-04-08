@@ -9,7 +9,7 @@ from src.db.models import User, Cart, Category, SubCategory, CartItem, Product, 
 from src.db.base import get_session
 from src.fsm import OrderCreate
 from src.keyboards import main_keyboard, generate_category_keyboard, cart_keyboard, pay_keyboard, orders_keyboard
-from src.config import PER_PAGE, BOT_USERNAME, TOKEN_KASSA
+from src.config import PER_PAGE, BOT_USERNAME, TOKEN_KASSA, MANAGER_ID
 from src.some_functions import generation_message_cartitems
 
 router = Router(name='messages-router')
@@ -141,6 +141,7 @@ async def success_payment(message: Message):
         await session.commit()
     await bot.send_message(message.from_user.id, 'Оплата прошла успешно! С вами свяжется менеджер в ближайшее время '
                                                  'для уточнения деталей доставки')
+    await bot.send_message(MANAGER_ID, '‼️Пришел новый заказ ‼️')
     '''Записать заказ в таблицу эксель'''
 
 
