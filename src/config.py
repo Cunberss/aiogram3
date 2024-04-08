@@ -8,3 +8,4 @@ CHANNEL_NAME = os.getenv('CHANNEL_NAME')
 GROUP_NAME = os.getenv('GROUP_NAME')
 PER_PAGE = 3
 BOT_USERNAME = os.getenv('BOT_USERNAME')
+TOKEN_KASSA = os.getenv('TOKEN_KASSA')

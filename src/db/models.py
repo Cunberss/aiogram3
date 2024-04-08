@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, BigInteger, Numeric, ForeignKey, Text, ARRAY
+from sqlalchemy import Column, Integer, String, BigInteger, Numeric, ForeignKey, Text, Boolean
 from src.db.base import Base
 
 
@@ -69,4 +69,5 @@ class Order(Base):
     address = Column(Text, nullable=False)
     price = Column(Numeric, nullable=False)
     products = Column(Text, nullable=False)
+    status = Column(Boolean, default=False)
 

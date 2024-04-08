@@ -69,6 +69,11 @@ def send_phone_keyboard() -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
 
 
+def pay_keyboard() -> InlineKeyboardMarkup:
+    button_pay = InlineKeyboardButton(text='Оплатить', pay=True)
+    return InlineKeyboardBuilder().add(button_pay).adjust(1).as_markup()
+
+
 
 
 
