@@ -7,6 +7,7 @@ class User(Base):
 
     user_id = Column(BigInteger, primary_key=True, unique=True, autoincrement=False)
     username = Column(String, default='Unknown')
+    phone = Column(String, default='Unknown')
 
 
 class Product(Base):
@@ -58,4 +59,14 @@ class Question(Base):
     id = Column(Integer, primary_key=True)
     question_text = Column(String(255), nullable=False)
     answer = Column(Text, nullable=False)
+
+
+class Order(Base):
+    __tablename__ = 'orders'
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(BigInteger, ForeignKey('users.user_id'))
+    address = Column(Text, nullable=False)
+    price = Column(Numeric, nullable=False)
+    products = Column(Text, nullable=False)
 

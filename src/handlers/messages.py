@@ -1,7 +1,7 @@
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, Contact
-from sqlalchemy import select, insert, desc
+from sqlalchemy import select, insert, desc, update
 
 from src.bot import bot
 from src.db.models import User, Cart, Category, SubCategory, CartItem, Product
@@ -62,9 +62,12 @@ async def faq_handler(message: Message, state: FSMContext):
 @router.message(OrderCreate.phone)
 async def get_contact(message: Message, state: FSMContext):
     phone = message.contact.phone_number
-    name = message.contact.first_name
+    async with get_session() as session:
+        query = update(User).where(User.user_id == message.from_user.id).values(phone=phone)
+        await session.execute(query)
+        await session.commit()
     await state.set_state(OrderCreate.address)
-    await state.update_data(phone=phone, name=name)
+    await state.update_data(phone=phone)
     await bot.send_message(message.from_user.id, 'Введите адрес доставки 👇', reply_markup=main_keyboard())
 
 
@@ -75,7 +78,7 @@ async def get_address(message: Message, state: FSMContext):
         await bot.send_message(message.from_user.id, 'Введите корректный адрес доставки 👇')
     else:
         data = await state.get_data()
-        phone, name = data['phone'], data['name']
+        phone = data['phone']
         await state.clear()
 
 

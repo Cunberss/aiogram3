@@ -7,7 +7,7 @@ from sqlalchemy import select, insert, desc, delete, and_
 
 from src.bot import bot
 from src.config import CHANNEL_NAME, GROUP_NAME, PER_PAGE
-from src.db.models import Cart, Category, SubCategory, Product, CartItem
+from src.db.models import Cart, Category, SubCategory, Product, CartItem, User
 from src.db.base import get_session
 from src.fsm import WatchProducts, OrderCreate
 from src.keyboards import main_keyboard, generate_category_keyboard, product_keyboard, choose_quantity_keyboard, \
@@ -166,8 +166,19 @@ async def actions_cartitems(callback: CallbackQuery, state: FSMContext):
     if response == 'success':
         await callback.answer()
         await callback.message.delete()
-        await bot.send_message(callback.from_user.id, 'Для оформления заказа необходимо поделиться номером телефона 👇', reply_markup=send_phone_keyboard())
-        await state.set_state(OrderCreate.phone)
+        async with get_session() as session:
+            query = select(User.phone).where(User.user_id == callback.from_user.id)
+            result = await session.execute(query)
+            answer = result.all()
+            phone = answer[0][0]
+            if phone == 'Unknown':
+                await bot.send_message(callback.from_user.id, 'Для оформления заказа необходимо поделиться номером телефона 👇', reply_markup=send_phone_keyboard())
+                await state.set_state(OrderCreate.phone)
+            else:
+                await bot.send_message(callback.from_user.id, 'Введите адрес доставки 👇')
+                await state.set_state(OrderCreate.address)
+                await state.update_data(phone=phone)
+
     elif response == 'change':
         async with get_session() as session:
             query = select(Cart).where(Cart.user_id == callback.from_user.id)
