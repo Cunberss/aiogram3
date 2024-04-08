@@ -2,16 +2,17 @@ from aiogram import Router, F
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, CallbackQuery, FSInputFile
-from sqlalchemy import select, insert
+from aiogram.types import  CallbackQuery, FSInputFile
+from sqlalchemy import select, insert, desc, delete, and_
 
 from src.bot import bot
 from src.config import CHANNEL_NAME, GROUP_NAME, PER_PAGE
-from src.db.models import User, Cart, Category, SubCategory, Product, CartItem
+from src.db.models import Cart, Category, SubCategory, Product, CartItem
 from src.db.base import get_session
-from src.fsm import WatchProducts
-from src.keyboards import main_keyboard, generate_category_keyboard, product_keyboard, choose_quantity_keyboard
-from src.some_functions import generation_message_product
+from src.fsm import WatchProducts, OrderCreate
+from src.keyboards import main_keyboard, generate_category_keyboard, product_keyboard, choose_quantity_keyboard, \
+    cart_changer_keyboard, cart_keyboard, send_phone_keyboard
+from src.some_functions import generation_message_product, generation_message_cartitems
 
 router = Router(name='callbacks-router')
 
@@ -157,5 +158,69 @@ async def action_products_handler(callback: CallbackQuery, state: FSMContext):
         await callback.answer(text='Товар добавлен в корзину', show_alert=True)
     else:
         await callback.answer()
+
+
+@router.callback_query(StateFilter(None), F.data.startswith('cart'))
+async def actions_cartitems(callback: CallbackQuery, state: FSMContext):
+    response = callback.data.split('_')[1]
+    if response == 'success':
+        await callback.answer()
+        await callback.message.delete()
+        await bot.send_message(callback.from_user.id, 'Для оформления заказа необходимо поделиться номером телефона 👇', reply_markup=send_phone_keyboard())
+        await state.set_state(OrderCreate.phone)
+    elif response == 'change':
+        async with get_session() as session:
+            query = select(Cart).where(Cart.user_id == callback.from_user.id)
+            result = await session.execute(query)
+            answer = result.all()
+            if answer:
+                cart_id = answer[0][0].id
+                query = select(Product.id, Product.name).join(CartItem, Product.id == CartItem.product_id).filter(
+                    CartItem.cart_id == cart_id).order_by(desc(CartItem.id))
+                result = await session.execute(query)
+                answer = result.all()
+                if answer:
+                    lst_items = [el for el in answer]
+                    mes = '\n\nКакой товар убрать из корзины? 👇'
+                    text = callback.message.text + mes
+                    await callback.message.edit_text(text=text, reply_markup=cart_changer_keyboard(lst_items, cart_id))
+                else:
+                    await callback.answer('Что-то пошло не так', show_alert=True)
+            else:
+                await callback.answer('Что-то пошло не так', show_alert=True)
+    elif response == 'alldel':
+        cart_id = int(callback.data.split('_')[-1])
+        async with get_session() as session:
+            query = delete(CartItem).where(CartItem.cart_id == cart_id)
+            await session.execute(query)
+            await session.commit()
+            await callback.answer('Ваша корзина полностью очищена', show_alert=True)
+            await callback.message.delete()
+    elif response == 'back':
+        text = callback.message.text.replace('\n\nКакой товар убрать из корзины? 👇', '')
+        await callback.message.edit_text(text=text, reply_markup=cart_keyboard())
+        await callback.answer()
+    elif response == 'delete':
+        product_id = int(callback.data.split('_')[-2])
+        cart_id = int(callback.data.split('_')[-1])
+        async with get_session() as session:
+            query = delete(CartItem).where(and_(CartItem.cart_id == cart_id, CartItem.product_id == product_id))
+            await session.execute(query)
+            await session.commit()
+            await callback.answer('Товар удален из корзины', show_alert=True)
+            query = select(Product.name, CartItem.quantity,
+                           (Product.price * CartItem.quantity).label('total_price')).join(CartItem,
+                                                                                          Product.id == CartItem.product_id).filter(
+                CartItem.cart_id == cart_id).order_by(desc(CartItem.id))
+            result = await session.execute(query)
+            answer = result.all()
+            if answer:
+                lst_items = [el for el in answer]
+                mes = generation_message_cartitems(lst_items)
+                await callback.message.edit_text(text=mes, reply_markup=cart_keyboard())
+            else:
+                await callback.answer('Ваша корзина пуста', show_alert=True)
+                await callback.message.delete()
+
 
 

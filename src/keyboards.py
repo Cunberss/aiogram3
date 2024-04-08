@@ -31,14 +31,14 @@ def channel_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardBuilder().add(button_url_channel, button_url_group, button_check).adjust(1).as_markup()
 
 
-def product_keyboard():
+def product_keyboard() -> InlineKeyboardMarkup:
     button_back = InlineKeyboardButton(text='⬅️', callback_data='product_back')
     button_next = InlineKeyboardButton(text='➡️', callback_data='product_next')
     button_cart = InlineKeyboardButton(text='В корзину', callback_data='product_incart')
     return InlineKeyboardBuilder().add(button_back,button_next, button_cart).adjust(2).as_markup()
 
 
-def choose_quantity_keyboard(quantity=1):
+def choose_quantity_keyboard(quantity=1) -> InlineKeyboardMarkup:
     quantity = 1 if quantity < 1 else quantity
     button_left = InlineKeyboardButton(text='-', callback_data=f'product_incart-_{quantity}')
     button_right = InlineKeyboardButton(text='+', callback_data=f'product_incart+_{quantity}')
@@ -46,5 +46,29 @@ def choose_quantity_keyboard(quantity=1):
     button_back = InlineKeyboardButton(text='Назад ◀️', callback_data='product_return')
     button_success = InlineKeyboardButton(text='Подтвердить ✅', callback_data=f'product_saveincart_{quantity}')
     return InlineKeyboardBuilder().add(button_left, button_quantity, button_right, button_back, button_success).adjust(3).as_markup()
+
+
+def cart_keyboard() -> InlineKeyboardMarkup:
+    button_success = InlineKeyboardButton(text='Оформить заказ ✅', callback_data='cart_success')
+    button_change = InlineKeyboardButton(text='Удалить товар', callback_data='cart_change')
+    return InlineKeyboardBuilder().add(button_success, button_change).adjust(1).as_markup()
+
+
+def cart_changer_keyboard(lst_items, cart_id) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    for el in lst_items:
+        builder.row(InlineKeyboardButton(text=el[1], callback_data=f'cart_delete_{el[0]}_{cart_id}'), width=1)
+    builder.row(InlineKeyboardButton(text='Очистить все' , callback_data=f'cart_alldel_{cart_id}'))
+    builder.row(InlineKeyboardButton(text='Назад ◀️', callback_data=f'cart_back'))
+    return builder.as_markup()
+
+
+def send_phone_keyboard() -> ReplyKeyboardMarkup:
+    button_phone = KeyboardButton(text='Поделиться номером', request_contact=True)
+    kb = [[button_phone]]
+    return ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
+
+
+
 
 

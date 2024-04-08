@@ -1,6 +1,6 @@
 from aiogram import Router
 from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessageContent
-from sqlalchemy import select, or_
+from sqlalchemy import select
 
 from src.db.base import get_session
 from src.db.models import Question
