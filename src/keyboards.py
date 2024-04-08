@@ -6,7 +6,8 @@ from src.config import CHANNEL_NAME, GROUP_NAME
 def main_keyboard() -> ReplyKeyboardMarkup:
     kb = [
         [KeyboardButton(text='Каталог'),
-         KeyboardButton(text='Корзина'),
+         KeyboardButton(text='Корзина')],
+         [KeyboardButton(text='Мои заказы'),
          KeyboardButton(text='F.A.Q')]
     ]
     keyboard = ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
@@ -73,6 +74,18 @@ def pay_keyboard() -> InlineKeyboardMarkup:
     button_pay = InlineKeyboardButton(text='Оплатить', pay=True)
     return InlineKeyboardBuilder().add(button_pay).adjust(1).as_markup()
 
+
+def orders_keyboard(ids_orders) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    for el in ids_orders:
+        builder.row(InlineKeyboardButton(text=f'Заказ №{el}', callback_data=f'checkorder_{el}'), width=1)
+    return builder.as_markup()
+
+
+def delete_keyboard() -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text='Закрыть', callback_data='delete_message'))
+    return builder.as_markup()
 
 
 

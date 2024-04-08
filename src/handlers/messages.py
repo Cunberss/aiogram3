@@ -8,7 +8,7 @@ from src.bot import bot
 from src.db.models import User, Cart, Category, SubCategory, CartItem, Product, Order
 from src.db.base import get_session
 from src.fsm import OrderCreate
-from src.keyboards import main_keyboard, generate_category_keyboard, cart_keyboard, pay_keyboard
+from src.keyboards import main_keyboard, generate_category_keyboard, cart_keyboard, pay_keyboard, orders_keyboard
 from src.config import PER_PAGE, BOT_USERNAME, TOKEN_KASSA
 from src.some_functions import generation_message_cartitems
 
@@ -32,9 +32,27 @@ async def user_cart_handler(message: Message, state: FSMContext):
                 mes = generation_message_cartitems(lst_items)
                 await bot.send_message(message.from_user.id, mes, reply_markup=cart_keyboard())
             else:
-                await message.answer(f'Ваша корзина пуста')
+                await message.answer('Ваша корзина пуста')
         else:
-            await message.answer(f'Ваша корзина пуста')
+            await message.answer('Ваша корзина пуста')
+
+
+@router.message(F.text == 'Мои заказы')
+async def orders_handler(message: Message, state: FSMContext):
+    await state.clear()
+    async with get_session() as session:
+        query = select(Order.id, Order.price, Order.address).where(and_(Order.user_id == message.from_user.id, Order.status == True)).limit(5).order_by(desc(Order.id))
+        result = await session.execute(query)
+        answer = result.all()
+        if answer:
+            lst_orders = [el for el in answer]
+            ids_orders = [el[0] for el in answer]
+            text = 'Ваши 5 последних заказов 👇\n\n'
+            for el in lst_orders:
+                text += f'№:{el[0]}, Стоимость: {el[1]}р, Адрес: {el[2]}\n'
+            await bot.send_message(message.from_user.id, text=text, reply_markup=orders_keyboard(ids_orders))
+        else:
+            await message.answer('У вас еще нет оплаченных заказов')
 
 
 @router.message(F.text == 'Каталог')

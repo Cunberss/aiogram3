@@ -7,11 +7,11 @@ from sqlalchemy import select, insert, desc, delete, and_
 
 from src.bot import bot
 from src.config import CHANNEL_NAME, GROUP_NAME, PER_PAGE
-from src.db.models import Cart, Category, SubCategory, Product, CartItem, User
+from src.db.models import Cart, Category, SubCategory, Product, CartItem, User, Order
 from src.db.base import get_session
 from src.fsm import WatchProducts, OrderCreate
 from src.keyboards import main_keyboard, generate_category_keyboard, product_keyboard, choose_quantity_keyboard, \
-    cart_changer_keyboard, cart_keyboard, send_phone_keyboard
+    cart_changer_keyboard, cart_keyboard, send_phone_keyboard, delete_keyboard
 from src.some_functions import generation_message_product, generation_message_cartitems
 
 router = Router(name='callbacks-router')
@@ -232,6 +232,37 @@ async def actions_cartitems(callback: CallbackQuery, state: FSMContext):
             else:
                 await callback.answer('Ваша корзина пуста', show_alert=True)
                 await callback.message.delete()
+
+
+@router.callback_query(F.data.startswith('checkorder'))
+async def check_order_handler(callback: CallbackQuery):
+    order_id = int(callback.data.split('_')[1])
+    async with get_session() as session:
+        query = select(Order.products).where(Order.id == order_id)
+        result = await session.execute(query)
+        answer = result.all()[0][0]
+        list_products = [el.split(',') for el in answer.split('\n')]
+        list_products = [[el_1.split(':')[1], el_2.split(':')[1]] for [el_1, el_2] in list_products]
+        products_ids = [int(el[0]) for el in list_products]
+        quantity_list = [int(el[1]) for el in list_products]
+        query = select(Product.name, Product.price).filter(Product.id.in_(products_ids))
+        result = await session.execute(query)
+        answer = [el for el in result.all()]
+        text = f'Информация по заказу №{order_id} 👇\n\n'
+        for el_1, el_2 in zip(answer, quantity_list):
+            text += f'{el_1[0]}, кол-во: {el_2}, стоимость: {el_1[1]}\n'
+        await callback.answer()
+        await bot.send_message(callback.from_user.id, text=text, reply_markup=delete_keyboard())
+
+
+@router.callback_query(F.data == 'delete_message')
+async def delete_message_handler(callback: CallbackQuery):
+    await callback.answer()
+    await callback.message.delete()
+
+
+
+
 
 
 
