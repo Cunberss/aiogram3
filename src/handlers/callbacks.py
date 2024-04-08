@@ -2,7 +2,7 @@ from aiogram import Router, F
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.types import  CallbackQuery, FSInputFile
+from aiogram.types import CallbackQuery, FSInputFile
 from sqlalchemy import select, insert, desc, delete, and_, update
 
 from src.bot import bot
