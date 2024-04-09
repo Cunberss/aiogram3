@@ -19,6 +19,11 @@ For the manager:
 - Notification of a new paid order
 - special command: /orders - get a table of orders for the day
 
+Restrictions:
+- The user will not be able to add more than 10 different product to the cart
+- The quantity is not regulated (>=1)
+- Adding identical items to your cart increases the total quantity of that item in your cart.
+
 Folders:
 - Folder alembic - alembic migration
 - Folder src - main folder project
