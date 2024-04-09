@@ -23,6 +23,7 @@ Restrictions:
 - The user will not be able to add more than 10 different product to the cart
 - The quantity is not regulated (>=1)
 - Adding identical items to your cart increases the total quantity of that item in your cart.
+- To test payments, the easiest way to test payments in BotFather is to get a test token and use test gateway cards
 
 Folders:
 - Folder alembic - alembic migration
