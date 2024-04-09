@@ -58,7 +58,7 @@ async def get_products_handler(callback: CallbackQuery, state: FSMContext):
 async def check_subscribe_handler(callback: CallbackQuery):
     user_channel_status = await bot.get_chat_member(chat_id=f'@{CHANNEL_NAME}', user_id=callback.from_user.id)
     user_group_status = await bot.get_chat_member(chat_id=f'@{GROUP_NAME}', user_id=callback.from_user.id)
-    if user_channel_status.status != 'left' and user_group_status.status != 'legt':
+    if user_channel_status.status != 'left' and user_group_status.status != 'left':
         await callback.answer(text='Спасибо за подписку!', show_alert=True)
         await callback.message.delete()
         await bot.send_message(callback.from_user.id, f'Привет, {callback.from_user.username}!', reply_markup=main_keyboard())
