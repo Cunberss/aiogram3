@@ -19,6 +19,9 @@ For the manager:
 - Notification of a new paid order
 - special command: /orders - get a table of orders for the day
 
+Folders:
+- Folder alembic - alembic migration
+- Folder src - main folder project
 - Folder orders - for storing order tables Excel
 - Folder logs - for storing logs (loguru)
 - Folder images - images products (Products.photo_url in model)
