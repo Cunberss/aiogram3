@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder, KeyboardBuilder
 
-from src.callback_factory import ProductCallbackFactory
+from src.callback_factory import ProductCallbackFactory, CartCallbackFactory, OrderCallbackFactory
 from src.config import CHANNEL_NAME, GROUP_NAME
 
 
@@ -57,18 +57,19 @@ def choose_quantity_keyboard(quantity=1) -> InlineKeyboardMarkup:
 
 
 def cart_keyboard() -> InlineKeyboardMarkup:
-    button_success = InlineKeyboardButton(text='Оформить заказ ✅', callback_data='cart_success')
-    button_change = InlineKeyboardButton(text='Удалить товар', callback_data='cart_change')
-    return InlineKeyboardBuilder().add(button_success, button_change).adjust(1).as_markup()
+    builder = InlineKeyboardBuilder()
+    builder.button(text='Оформить заказ ✅', callback_data=CartCallbackFactory(action='success'))
+    builder.button(text='Удалить товар', callback_data=CartCallbackFactory(action='change'))
+    return builder.adjust(1).as_markup()
 
 
 def cart_changer_keyboard(lst_items, cart_id) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     for el in lst_items:
-        builder.row(InlineKeyboardButton(text=el[1], callback_data=f'cart_delete_{el[0]}_{cart_id}'), width=1)
-    builder.row(InlineKeyboardButton(text='Очистить все' , callback_data=f'cart_alldel_{cart_id}'))
-    builder.row(InlineKeyboardButton(text='Назад ◀️', callback_data=f'cart_back'))
-    return builder.as_markup()
+        builder.button(text=el[1], callback_data=CartCallbackFactory(action='delete', product_id=el[0], cart_id=cart_id))
+    builder.button(text='Очистить все' , callback_data=CartCallbackFactory(action='alldel', cart_id=cart_id))
+    builder.button(text='Назад ◀️', callback_data=CartCallbackFactory(action='back'))
+    return builder.adjust(1).as_markup()
 
 
 def send_phone_keyboard() -> ReplyKeyboardMarkup:
@@ -85,8 +86,8 @@ def pay_keyboard() -> InlineKeyboardMarkup:
 def orders_keyboard(ids_orders) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     for el in ids_orders:
-        builder.row(InlineKeyboardButton(text=f'Заказ №{el}', callback_data=f'checkorder_{el}'), width=1)
-    return builder.as_markup()
+        builder.button(text=f'Заказ №{el}', callback_data=OrderCallbackFactory(order_id=el))
+    return builder.adjust(1).as_markup()
 
 
 def delete_keyboard() -> InlineKeyboardMarkup:

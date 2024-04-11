@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, FSInputFile
 
 from src.bot import bot
-from src.callback_factory import ProductCallbackFactory
+from src.callback_factory import ProductCallbackFactory, CartCallbackFactory, OrderCallbackFactory
 from src.config import CHANNEL_NAME, GROUP_NAME
 from src.db.functions import db_get_subcategories, db_get_products, db_get_categories, db_get_cart, \
     db_get_cartitems_count, db_add_product_in_cart, db_get_phone, db_get_products_in_cart, db_delete_cart, \
@@ -144,9 +144,9 @@ async def action_products_handler(callback: CallbackQuery, callback_data: Produc
         await callback.answer()
 
 
-@router.callback_query(F.data.startswith('cart'))
-async def actions_cartitems(callback: CallbackQuery, state: FSMContext):
-    response = callback.data.split('_')[1]
+@router.callback_query(CartCallbackFactory.filter())
+async def actions_cartitems(callback: CallbackQuery,callback_data: CartCallbackFactory, state: FSMContext):
+    response = callback_data.action
     if response == 'success':
         await callback.answer()
         await callback.message.delete()
@@ -171,8 +171,7 @@ async def actions_cartitems(callback: CallbackQuery, state: FSMContext):
             await callback.answer('Что-то пошло не так', show_alert=True)
 
     elif response == 'alldel':
-        cart_id = int(callback.data.split('_')[-1])
-        await db_delete_cart(callback.from_user.id, cart_id)
+        await db_delete_cart(callback.from_user.id, callback_data.cart_id)
         await callback.answer('Ваша корзина полностью очищена', show_alert=True)
         await callback.message.delete()
 
@@ -182,12 +181,10 @@ async def actions_cartitems(callback: CallbackQuery, state: FSMContext):
         await callback.answer()
 
     elif response == 'delete':
-        product_id = int(callback.data.split('_')[-2])
-        cart_id = int(callback.data.split('_')[-1])
-        await db_delete_product_in_cart(cart_id, product_id)
+        await db_delete_product_in_cart(callback_data.cart_id, callback_data.product_id)
         await callback.answer('Товар удален из корзины', show_alert=True)
 
-        answer = await db_get_cartitems(cart_id)
+        answer = await db_get_cartitems(callback_data.cart_id)
         if answer:
             lst_items = [el for el in answer]
             mes = generation_message_cartitems(lst_items)
@@ -197,9 +194,9 @@ async def actions_cartitems(callback: CallbackQuery, state: FSMContext):
             await callback.message.delete()
 
 
-@router.callback_query(F.data.startswith('checkorder'))
-async def check_order_handler(callback: CallbackQuery):
-    order_id = int(callback.data.split('_')[1])
+@router.callback_query(OrderCallbackFactory.filter())
+async def check_order_handler(callback: CallbackQuery, callback_data: OrderCallbackFactory):
+    order_id = callback_data.order_id
     answer = await db_get_order_products(order_id)
     text = await generation_order_data(answer, order_id)
     await callback.answer()
