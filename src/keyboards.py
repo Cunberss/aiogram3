@@ -1,5 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder, KeyboardBuilder
+
+from src.callback_factory import ProductCallbackFactory
 from src.config import CHANNEL_NAME, GROUP_NAME
 
 
@@ -35,21 +37,23 @@ def channel_keyboard() -> InlineKeyboardMarkup:
 
 
 def product_keyboard() -> InlineKeyboardMarkup:
-    button_back = InlineKeyboardButton(text='⬅️', callback_data='product_back')
-    button_next = InlineKeyboardButton(text='➡️', callback_data='product_next')
-    button_cart = InlineKeyboardButton(text='В корзину', callback_data='product_incart')
-    button_back_category = InlineKeyboardButton(text='К категориям', callback_data='return_to_category')
-    return InlineKeyboardBuilder().add(button_back,button_next, button_back_category, button_cart).adjust(2).as_markup()
+    builder = InlineKeyboardBuilder()
+    builder.button(text='⬅️', callback_data=ProductCallbackFactory(action='back'))
+    builder.button(text='➡️', callback_data=ProductCallbackFactory(action='next'))
+    builder.button(text='В корзину', callback_data=ProductCallbackFactory(action='incart'))
+    builder.button(text='К категориям', callback_data='return_to_category')
+    return builder.adjust(2).as_markup()
 
 
 def choose_quantity_keyboard(quantity=1) -> InlineKeyboardMarkup:
     quantity = 1 if quantity < 1 else quantity
-    button_left = InlineKeyboardButton(text='-', callback_data=f'product_incart-_{quantity}')
-    button_right = InlineKeyboardButton(text='+', callback_data=f'product_incart+_{quantity}')
-    button_quantity = InlineKeyboardButton(text=str(quantity), callback_data='product_some')
-    button_back = InlineKeyboardButton(text='Назад ◀️', callback_data='product_return')
-    button_success = InlineKeyboardButton(text='Подтвердить ✅', callback_data=f'product_saveincart_{quantity}')
-    return InlineKeyboardBuilder().add(button_left, button_quantity, button_right, button_back, button_success).adjust(3).as_markup()
+    builder = InlineKeyboardBuilder()
+    builder.button(text='-', callback_data=ProductCallbackFactory(action='incart-', quantity=quantity))
+    builder.button(text=str(quantity), callback_data=ProductCallbackFactory(action='some'))
+    builder.button(text='+', callback_data=ProductCallbackFactory(action='incart+', quantity=quantity))
+    builder.button(text='Назад ◀️', callback_data=ProductCallbackFactory(action='return'))
+    builder.button(text='Подтвердить ✅', callback_data=ProductCallbackFactory(action='saveincart', quantity=quantity))
+    return builder.adjust(3).as_markup()
 
 
 def cart_keyboard() -> InlineKeyboardMarkup:
