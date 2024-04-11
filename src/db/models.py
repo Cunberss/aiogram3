@@ -8,7 +8,7 @@ class User(Base):
     user_id = Column(BigInteger, primary_key=True, unique=True, autoincrement=False)
     username = Column(String, default='Unknown')
     phone = Column(String, default='Unknown')
-    registration_date = Column(DateTime, default=func.now())
+    registration_date = Column(DateTime, default=func.now)
 
 
 class Product(Base):
@@ -43,7 +43,7 @@ class Cart(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(BigInteger, ForeignKey('users.user_id'))
-    create_date = Column(DateTime, default=func.now())
+    create_date = Column(DateTime, default=func.now)
 
 
 class CartItem(Base):
@@ -53,7 +53,7 @@ class CartItem(Base):
     cart_id = Column(Integer, ForeignKey('carts.id'))
     product_id = Column(Integer, ForeignKey('products.id'))
     quantity = Column(Integer, nullable=False)
-    add_date = Column(DateTime, default=func.now())
+    add_date = Column(DateTime, default=func.now)
 
 
 class Question(Base):
@@ -73,5 +73,5 @@ class Order(Base):
     price = Column(Numeric, nullable=False)
     products = Column(Text, nullable=False)
     status = Column(Boolean, default=False)
-    create_date = Column(DateTime, default=func.now())
+    create_date = Column(DateTime, default=func.now)
 
